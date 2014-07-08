@@ -9,7 +9,7 @@
 
 class SimulationsSavior{
     public:
-        SimulationsSavior(std::string dbname, std::string user = "", std::string password = "");
+        SimulationsSavior(std::string dbname, std::string user = "", std::string password = "", std::string host = "");
         void New(std::map<std::string, std::string> parameters, std::string table);
         void Insert(std::vector<double> values, std::string table);
         ~SimulationsSavior();

@@ -1,12 +1,13 @@
 #include "simulations_savior.h"
 
-SimulationsSavior::SimulationsSavior(std::string dbname, std::string user, std::string password):conn(), id()
+SimulationsSavior::SimulationsSavior(std::string dbname, std::string user, std::string password, std::string host):conn(), id()
 {
     try{
         std::string connection_parameters;
         if(dbname != "") connection_parameters += "dbname=" + dbname;
         if(user != "") connection_parameters += " user=" + user;
         if(password != "") connection_parameters += " password=" + password;
+        if(host != "") connection_parameters += " host=" + host;
         conn = new pqxx::connection(connection_parameters);
         if (conn->is_open()) {
             std::cout << "Successfully opened database " << conn->dbname() << "." << std::endl;
