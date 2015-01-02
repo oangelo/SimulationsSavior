@@ -8,19 +8,24 @@ SimulationsSavior::SimulationsSavior(std::string dbname, std::string user, std::
         if(user != "") connection_parameters += " user=" + user;
         if(password != "") connection_parameters += " password=" + password;
         if(host != "") connection_parameters += " host=" + host;
-        conn = new pqxx::connection(connection_parameters);
-        if (conn->is_open()) {
-            std::cout << "Successfully opened database " << conn->dbname() << "." << std::endl;
-        } else {
-            std::cerr << "Can't open the database" << std::endl;
-        }
+        conn = new pqxx::lazyconnection(connection_parameters);
     }catch (const std::exception &e){
         std::cerr << e.what() << std::endl;
     }
 }
 
+int SimulationsSavior::GetID()
+{
+    std::string get("select currval('parameters_id_seq');");
+    pqxx::nontransaction N(*conn);
+    pqxx::result R(N.exec(get));
+    id = R.begin()[0].as<int>();
+    return id;
+}
+
 //Add a new simulation to the parameters table
 void SimulationsSavior::New(std::map<std::string, std::string> parameters, std::string table){
+
     //Insert
     std::string values;
     std::string columns;
@@ -38,14 +43,15 @@ void SimulationsSavior::New(std::map<std::string, std::string> parameters, std::
     cursor.exec(insert);
     cursor.commit();
     //Get id
-    std::string get("select currval('parameters_id_seq');");
 
-    pqxx::nontransaction N(*conn);
-    pqxx::result R(N.exec(get));
-    id = R.begin()[0].as<int>();
+    id = GetID(); 
+
+    conn->deactivate(); //simulations can take time, and it is not good to wait connected to the db
 }
 
 void SimulationsSavior::Insert(std::vector<double> values, std::string table){
+    conn->activate();
+
     pqxx::work cursor(*conn);
     std::string insert("insert into "+table+" values (");
     insert += " " + std::to_string(id) + ",";
@@ -55,6 +61,8 @@ void SimulationsSavior::Insert(std::vector<double> values, std::string table){
     insert += ");";
     cursor.exec(insert);
     cursor.commit();
+
+    conn->deactivate(); //simulations can take time, and it is not good to wait connected to the db
 }
 
 SimulationsSavior::~SimulationsSavior(){

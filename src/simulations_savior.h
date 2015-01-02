@@ -14,11 +14,13 @@ class SimulationsSavior{
         void Insert(std::vector<double> values, std::string table);
         ~SimulationsSavior();
     private:
-        pqxx::connection* conn;
+        pqxx::lazyconnection* conn;
         int id;
         //Preventing Copy
         SimulationsSavior(const SimulationsSavior&);
         SimulationsSavior& operator=(const SimulationsSavior&);
+
+        int GetID();
 };
 
 #endif /* SIMULATIONS_SAVIOR_H */
